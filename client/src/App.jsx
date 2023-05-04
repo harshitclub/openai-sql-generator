@@ -3,10 +3,25 @@ import sqlServer from "./assets/sql-server.png";
 import { useState } from "react";
 
 export default function App() {
-  const [userPrompt, setUserPrompt] = useState("");
-  const onSubmit = (e) => {
+  const [queryDescription, setQueryDescription] = useState("");
+  const [sqlQuery, setSqlQuery] = useState("");
+  const onSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form Submit", userPrompt);
+    const query = await generateQuery();
+    setSqlQuery(query);
+  };
+
+  const generateQuery = async () => {
+    const response = await fetch("http://localhost:4000/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ queryDescription: queryDescription }),
+    });
+
+    const data = await response.json();
+    return data.sqlQuery.trim();
   };
   return (
     <main className={styles.main}>
@@ -17,11 +32,12 @@ export default function App() {
           type="text"
           name="query-description"
           placeholder="Describe Your Query"
-          value={userPrompt}
-          onChange={(e) => setUserPrompt(e.target.value)}
+          value={queryDescription}
+          onChange={(e) => setQueryDescription(e.target.value)}
         />
         <input type="submit" value="Generate Query" />
       </form>
+      <pre>{sqlQuery}</pre>
     </main>
   );
 }
